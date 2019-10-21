@@ -244,11 +244,14 @@ color: #ffffff;
                            <div style="float: left;width: 420px;height: 300px" id="ALL_word"></div>
                            <div style="float: left;width: 420px;height: 300px" id="ALL_pie"></div>
                        </div>
-                       <div class="right_h2">东盟地区事件网络图</div>
+                       <div class="right_h2">东盟地区事件网络图（合作）</div>
                        <div id="net" style="width: 850px;height: 600px">
 
                        </div>
+                       <div class="right_h2">东盟地区事件网络图（冲突）</div>
+                       <div id="net1" style="width: 850px;height: 600px">
 
+                       </div>
                    </div>
 
                     <div class="right_content">
@@ -1745,6 +1748,149 @@ color: #ffffff;
 
     });
 
+
+    $.getJSON('json/netWork_g1.json', function (data) {
+        
+
+        var nodes = [];
+        var o = {};
+        data = data.data;
+        for (var i = 0; i < data.length; i++) {
+            if (!o[data[i].source]) {
+                o[data[i].source] = 1;
+                nodes.push(data[i].source)
+            }
+            if (!o[data[i].target]) {
+                o[data[i].target] = 1;
+                nodes.push(data[i].target)
+            }
+
+        }
+        //var nodes = data.nodes;
+        var nodeMap = {};
+        nodes.map(function (item) {
+            nodeMap[item] = {
+                label: item,
+                weight: 0
+            };
+        });
+        var link = data;
+        link.sort(function (a, b) {
+            return b.value - a.value;
+        });
+        var max = link[0].value;
+        var setLinkData = [];
+        link.map(function (item) {
+            nodeMap[item.source].weight += 1;
+            nodeMap[item.target].weight += 1;
+            var width = (item.value - 30) / (max - 30) * 100 > 10 ? 10 : (item.value - 30) / (max - 30) * 100;
+            width = width < 2 ? 2 : width;
+            setLinkData.push({
+                source: nodeMap[item.source].label,
+                target: nodeMap[item.target].label,
+                value: item.value,
+                lineStyle: {
+                    normal: {
+                        width: 0.5
+                    },
+                    emphasis: { // 高亮状态
+                        width: width
+                    }
+
+                }
+            })
+        });
+        var setNodeData = [];
+
+        $.each(nodeMap, function (i, val) {
+
+            var symbolSize = '';
+            if (val.weight < 10) {
+                symbolSize = val.weight * 4 < 8 ? 8 : val.weight * 4;
+            } else {
+                symbolSize = val.weight * 1.5;
+            }
+            setNodeData.push({
+                category: val.label,
+                name: val.label,
+                value: val.weight,
+                symbolSize: Math.log(val.weight)*20 < 10 ? 10:Math.log(val.weight)*20
+
+            })
+        });
+
+        var option = {
+
+            title: {
+                text: "",
+                top: "top",
+                left: "center",
+                textStyle: {
+                    color: '#ED1C24'
+                }
+            },
+            backgroundColor:'#f3f3f3',
+            tooltip: {},
+            animationDuration: 1000,
+            animationEasingUpdate: 'quinticInOut',
+            series: [{
+                name: '',
+                type: 'graph',
+                layout: 'force',
+                force: { // 力引导图基本配置
+                    // initLayout: , // 力引导的初始化布局，默认使用xy轴的标点
+                    repulsion: 500, // 节点之间的斥力因子。支持数组表达斥力范围，值越大斥力越大。
+                    gravity: 0.6, // 节点受到的向中心的引力因子。该值越大节点越往中心点靠拢。
+                    edgeLength: 200, // 边的两个节点之间的距离，这个距离也会受 repulsion影响 。值越大则长度越长
+                    layoutAnimation: true // 因为力引导布局会在多次迭代后才会稳定，这个参数决定是否显示布局的迭代动画
+                    // 在浏览器端节点数据较多（>100）的时候不建议关闭，布局过程会造成浏览器假死。
+                },
+                /* force: {
+                                repulsion: 100
+                            },*/
+                lineStyle: { // ========关系边的公用线条样式。
+                    normal: {
+                        color: 'source',
+                        //color:'#FFD700',
+                        width: 0.5, //线的粗细
+                        type: 'solid', // 线的类型 'solid'（实线）'dashed'（虚线）'dotted'（点线）
+                        curveness: 0.3, // 线条的曲线程度，从0到1
+                        opacity: 0.9 // 图形透明度。支持从 0 到 1 的数字，为 0 时不绘制该图形。默认0.5
+                    },
+                    emphasis: { // 高亮状态
+
+                    }
+                },
+                draggable: true,
+                data: setNodeData,
+                links: setLinkData,
+                categories: setNodeData,
+                focusNodeAdjacency: true,
+                roam: true,
+                itemStyle: {
+                    normal: {
+                        borderColor: '#fff',
+                        borderWidth: 1,
+                        shadowBlur: 10,
+                        shadowColor: 'rgba(0, 0, 0, 0.3)'
+                    }
+                },
+                label: {
+                    normal: {
+                        show: true,
+                        position: 'top',
+                        textBorderColor: '#FFF',
+                        textBorderWidth: 2
+
+                    }
+                }
+
+            }]
+        };
+        var net1 = echarts.init(document.getElementById('net1'));
+        net1.setOption(option);
+
+    });
     $.getJSON('json/line.json',function(data){
 
 
